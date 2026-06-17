@@ -453,8 +453,22 @@
                         </div>
 
                         <div>
+                            <label class="block text-xs font-black text-slate-500 uppercase tracking-widest mb-2">📅 Assign to Season <span class="normal-case font-medium text-slate-400">(required)</span></label>
+                            <select id="sc-season-id" class="w-full px-4 py-3 rounded-xl bg-slate-50 border-2 border-slate-100 focus:border-indigo-500 outline-none font-bold text-sm">
+                                <option value="">— No Season (General) —</option>
+                            </select>
+                            <p class="text-[10px] text-slate-400 font-medium mt-1">Active season appears at the top of the student study page.</p>
+                        </div>
+                    </div>
+
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-5">
+                        <div>
                             <label class="block text-xs font-black text-slate-500 uppercase tracking-widest mb-2">Category / Topic <span class="normal-case font-medium text-slate-400">(optional)</span></label>
                             <input type="text" id="sc-category" placeholder="e.g. Chapter 1, Biology, Revision…" class="w-full px-4 py-3 rounded-xl bg-slate-50 border-2 border-slate-100 focus:border-indigo-500 outline-none font-bold text-sm">
+                        </div>
+                        <div>
+                            <label class="block text-xs font-black text-slate-500 uppercase tracking-widest mb-2">Order / Position <span class="normal-case font-medium text-slate-400">(optional)</span></label>
+                            <input type="number" id="sc-order" min="1" placeholder="1, 2, 3… (controls display order)" class="w-full px-4 py-3 rounded-xl bg-slate-50 border-2 border-slate-100 focus:border-indigo-500 outline-none font-bold text-sm">
                         </div>
                     </div>
 
@@ -2248,6 +2262,17 @@
             // Init with one insta URL field if empty
             const list = document.getElementById('sc-insta-urls-list');
             if (list && list.children.length === 0) window.addInstaUrlField();
+            // Populate season dropdown
+            const sel = document.getElementById('sc-season-id');
+            if (sel) {
+                const now = Date.now();
+                const seasons = (globalData.seasons || []).sort((a, b) => b.start - a.start);
+                sel.innerHTML = `<option value="">— No Season (General) —</option>` +
+                    seasons.map(s => {
+                        const isActive = now >= s.start && now <= s.end;
+                        return `<option value="${s.id}" ${isActive ? 'selected' : ''}>${isActive ? '🟢 ' : ''}${s.name}${isActive ? ' (Active)' : ''}</option>`;
+                    }).join('');
+            }
             renderStudyAdmin();
         };
 
@@ -2332,6 +2357,8 @@
             const type = document.querySelector('input[name="sc-type"]:checked')?.value;
             const title = document.getElementById('sc-title').value.trim();
             const category = document.getElementById('sc-category').value.trim();
+            const seasonId = document.getElementById('sc-season-id')?.value || '';
+            const orderVal = parseInt(document.getElementById('sc-order')?.value) || 0;
             if (!title) return alert("Please enter a title / description for this material.");
 
             let payload;
@@ -2339,23 +2366,24 @@
                 const url = document.getElementById('sc-yt-url')?.value.trim();
                 const vid = extractYouTubeId(url);
                 if (!vid) return alert("Could not extract YouTube video ID. Please check the URL.");
-                payload = { type: 'youtube', title, category, youtubeId: vid, originalUrl: url, createdAt: Date.now(), issuedBy: currentAdminEmail };
+                payload = { type: 'youtube', title, category, seasonId, order: orderVal, youtubeId: vid, originalUrl: url, createdAt: Date.now(), issuedBy: currentAdminEmail };
             } else {
                 const urls = [...document.querySelectorAll('[id^="sc-insta-url-"]')].map(el => el.value.trim()).filter(Boolean);
                 if (!urls.length) return alert("Please add at least one Instagram post URL.");
                 const shortcodes = urls.map(u => ({ url: u, shortcode: extractInstaShortcode(u) })).filter(x => x.shortcode);
                 if (!shortcodes.length) return alert("Could not parse any valid Instagram post URLs. Make sure they contain /p/ or /reel/.");
-                payload = { type: 'instagram', title, category, posts: shortcodes, createdAt: Date.now(), issuedBy: currentAdminEmail };
+                payload = { type: 'instagram', title, category, seasonId, order: orderVal, posts: shortcodes, createdAt: Date.now(), issuedBy: currentAdminEmail };
             }
 
             const id = 'sc_' + Date.now();
             try {
                 await setDoc(getPublicDoc('study_content', id), { id, ...payload });
-                addAuditEntry('success', `Study content added: "${title}" [${type}] by ${currentAdminEmail}`);
+                addAuditEntry('success', `Study content added: "${title}" [${type}]${seasonId ? ` for season ${seasonId}` : ''} by ${currentAdminEmail}`);
                 showToast("Study material published! 📚");
                 // Reset form
                 document.getElementById('sc-title').value = '';
                 document.getElementById('sc-category').value = '';
+                document.getElementById('sc-order').value = '';
                 document.getElementById('sc-yt-url').value = '';
                 document.getElementById('sc-yt-preview').classList.add('hidden');
                 document.getElementById('sc-insta-urls-list').innerHTML = '';
@@ -2383,9 +2411,18 @@
             const totalEl = document.getElementById('sc-total-count');
             if (!list) return;
 
+            const now = Date.now();
             const items = (globalData.studyContent || [])
                 .filter(x => scFilterCurrent === 'all' || x.type === scFilterCurrent)
-                .sort((a, b) => (b.createdAt || 0) - (a.createdAt || 0));
+                .sort((a, b) => {
+                    // Active season first, then by createdAt desc
+                    const sa = globalData.seasons.find(s => s.id === a.seasonId);
+                    const sb = globalData.seasons.find(s => s.id === b.seasonId);
+                    const aActive = sa && now >= sa.start && now <= sa.end ? 1 : 0;
+                    const bActive = sb && now >= sb.start && now <= sb.end ? 1 : 0;
+                    if (bActive !== aActive) return bActive - aActive;
+                    return (b.createdAt || 0) - (a.createdAt || 0);
+                });
 
             if (totalEl) totalEl.innerText = (globalData.studyContent || []).length;
 
@@ -2398,18 +2435,23 @@
 
             list.innerHTML = items.map(item => {
                 const dateStr = item.createdAt ? new Date(item.createdAt).toLocaleDateString() : '—';
+                const season = item.seasonId ? globalData.seasons.find(s => s.id === item.seasonId) : null;
+                const isActiveSeason = season && now >= season.start && now <= season.end;
                 const typeBadge = item.type === 'youtube'
                     ? `<span class="px-2 py-1 bg-red-100 text-red-700 text-[10px] font-black rounded uppercase">▶️ YouTube</span>`
                     : `<span class="px-2 py-1 bg-pink-100 text-pink-700 text-[10px] font-black rounded uppercase">📸 Instagram</span>`;
                 const catBadge = item.category ? `<span class="px-2 py-1 bg-violet-100 text-violet-700 text-[10px] font-black rounded">${item.category}</span>` : '';
+                const seasonBadge = season
+                    ? `<span class="px-2 py-1 text-[10px] font-black rounded ${isActiveSeason ? 'bg-emerald-100 text-emerald-700' : 'bg-slate-100 text-slate-500'}">${isActiveSeason ? '🟢 ' : '📅 '}${season.name}</span>`
+                    : `<span class="px-2 py-1 bg-slate-100 text-slate-400 text-[10px] font-bold rounded">General</span>`;
                 const detail = item.type === 'youtube'
-                    ? `<img src="https://img.youtube.com/vi/${item.youtubeId}/mqdefault.jpg" class="w-24 h-14 object-cover rounded-lg border border-slate-200 flex-shrink-0">`
-                    : `<div class="flex gap-1">${(item.posts || []).slice(0,3).map(p => `<div class="w-10 h-10 rounded-lg bg-pink-100 flex items-center justify-center text-sm font-black text-pink-500 border border-pink-200">📸</div>`).join('')}${(item.posts||[]).length > 3 ? `<div class="w-10 h-10 rounded-lg bg-pink-50 flex items-center justify-center text-xs font-black text-pink-400">+${(item.posts||[]).length-3}</div>` : ''}</div>`;
+                    ? `<img src="https://img.youtube.com/vi/${item.youtubeId}/mqdefault.jpg" class="w-24 h-14 object-cover rounded-lg border border-slate-200 flex-shrink-0" onerror="this.style.display='none'">`
+                    : `<div class="flex gap-1 flex-shrink-0">${(item.posts || []).slice(0,3).map(() => `<div class="w-10 h-10 rounded-lg bg-gradient-to-br from-pink-200 to-purple-200 flex items-center justify-center text-sm border border-pink-200">📸</div>`).join('')}${(item.posts||[]).length > 3 ? `<div class="w-10 h-10 rounded-lg bg-pink-50 flex items-center justify-center text-xs font-black text-pink-400 border border-pink-100">+${(item.posts||[]).length-3}</div>` : ''}</div>`;
 
-                return `<div class="bg-white p-5 rounded-2xl border border-slate-200 shadow-sm flex items-start gap-4 hover:shadow-md transition-shadow">
+                return `<div class="bg-white p-5 rounded-2xl border ${isActiveSeason ? 'border-emerald-200 shadow-emerald-50' : 'border-slate-200'} shadow-sm flex items-start gap-4 hover:shadow-md transition-shadow">
                     ${detail}
                     <div class="flex-1 min-w-0">
-                        <div class="flex flex-wrap gap-2 mb-1">${typeBadge}${catBadge}</div>
+                        <div class="flex flex-wrap gap-1.5 mb-1.5">${typeBadge}${seasonBadge}${catBadge}</div>
                         <div class="font-black text-slate-800 text-base truncate">${item.title}</div>
                         <div class="text-[10px] text-slate-400 font-bold mt-1">Added ${dateStr}${item.issuedBy ? ` · ${item.issuedBy}` : ''}${item.type === 'instagram' ? ` · ${(item.posts||[]).length} post(s)` : ''}</div>
                     </div>
