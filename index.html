@@ -130,6 +130,11 @@
                     <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 3v4M3 5h4M6 17v4m-2-2h4m5-16l2.286 6.857L21 12l-5.714 2.143L13 21l-2.286-6.857L5 12l5.714-2.143L13 3z"/></svg>
                     Seasons Management
                 </a>
+                <a href="#" onclick="window.switchTab('study')" id="nav-study" class="nav-item flex items-center gap-3 px-6 py-3 text-sm font-bold text-slate-600 hover:bg-slate-50 hover:text-slate-900 transition-colors">
+                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253"/></svg>
+                    Study Content
+                    <span id="nav-study-count" class="ml-auto bg-violet-100 text-violet-700 text-[10px] font-black px-2 py-0.5 rounded-full live-badge">0</span>
+                </a>
                 <a href="#" onclick="window.switchTab('audit')" id="nav-audit" class="nav-item flex items-center gap-3 px-6 py-3 text-sm font-bold text-slate-600 hover:bg-slate-50 hover:text-slate-900 transition-colors">
                     <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z"/></svg>
                     Audit Log
@@ -421,6 +426,88 @@
                 </div>
             </div>
 
+            <!-- ===== STUDY CONTENT VIEW ===== -->
+            <div id="view-study" class="hidden-view space-y-6 max-w-5xl">
+                <div>
+                    <h2 class="text-3xl font-black text-slate-900">Study Content</h2>
+                    <p class="text-slate-500 text-sm mt-1">Add Instagram posts and YouTube videos. Students can view everything inside the portal — no need to open Instagram or YouTube.</p>
+                </div>
+
+                <!-- Add New Content -->
+                <div class="bg-white p-6 rounded-3xl border border-slate-200 shadow-sm space-y-5">
+                    <h3 class="font-black text-lg text-slate-800">Add New Study Material</h3>
+
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-5">
+                        <div>
+                            <label class="block text-xs font-black text-slate-500 uppercase tracking-widest mb-2">Content Type</label>
+                            <div class="flex gap-3">
+                                <label class="flex-1 flex items-center gap-3 p-3 border-2 border-slate-100 rounded-xl cursor-pointer hover:border-pink-300 transition-colors has-[:checked]:border-pink-500 has-[:checked]:bg-pink-50">
+                                    <input type="radio" name="sc-type" value="instagram" id="sc-type-insta" class="accent-pink-500" checked onchange="window.updateScTypeUI()">
+                                    <span class="text-sm font-black text-slate-700">📸 Instagram Post</span>
+                                </label>
+                                <label class="flex-1 flex items-center gap-3 p-3 border-2 border-slate-100 rounded-xl cursor-pointer hover:border-rose-400 transition-colors has-[:checked]:border-red-500 has-[:checked]:bg-red-50">
+                                    <input type="radio" name="sc-type" value="youtube" id="sc-type-yt" class="accent-red-500" onchange="window.updateScTypeUI()">
+                                    <span class="text-sm font-black text-slate-700">▶️ YouTube Video</span>
+                                </label>
+                            </div>
+                        </div>
+
+                        <div>
+                            <label class="block text-xs font-black text-slate-500 uppercase tracking-widest mb-2">Category / Topic <span class="normal-case font-medium text-slate-400">(optional)</span></label>
+                            <input type="text" id="sc-category" placeholder="e.g. Chapter 1, Biology, Revision…" class="w-full px-4 py-3 rounded-xl bg-slate-50 border-2 border-slate-100 focus:border-indigo-500 outline-none font-bold text-sm">
+                        </div>
+                    </div>
+
+                    <div>
+                        <label class="block text-xs font-black text-slate-500 uppercase tracking-widest mb-2">Title / Description</label>
+                        <input type="text" id="sc-title" placeholder="Short description of what students will learn…" class="w-full px-4 py-3 rounded-xl bg-slate-50 border-2 border-slate-100 focus:border-indigo-500 outline-none font-bold text-sm">
+                    </div>
+
+                    <!-- Instagram fields -->
+                    <div id="sc-insta-fields">
+                        <label class="block text-xs font-black text-slate-500 uppercase tracking-widest mb-2">Instagram Post URL(s)</label>
+                        <p class="text-[11px] text-slate-400 font-medium mb-3">Paste the Instagram post link. If the post has multiple images (carousel), paste the main post URL — all slides will be embedded. Example: <code class="bg-slate-100 px-1 py-0.5 rounded text-slate-600">https://www.instagram.com/p/ABC123/</code></p>
+                        <div id="sc-insta-urls-list" class="space-y-2 mb-3"></div>
+                        <button onclick="window.addInstaUrlField()" type="button" class="px-4 py-2 bg-slate-100 text-slate-700 font-bold rounded-lg text-sm hover:bg-slate-200 transition-colors">+ Add Another Post URL</button>
+                        <p class="text-[10px] text-amber-600 font-bold mt-2 bg-amber-50 border border-amber-200 rounded-lg px-3 py-2">⚠️ Instagram embeds work for public posts only. Students must not be logged in / blocked. For best results use public Instagram accounts.</p>
+                    </div>
+
+                    <!-- YouTube fields -->
+                    <div id="sc-yt-fields" class="hidden">
+                        <label class="block text-xs font-black text-slate-500 uppercase tracking-widest mb-2">YouTube Video URL</label>
+                        <p class="text-[11px] text-slate-400 font-medium mb-3">Paste any YouTube link — standard, short, or embed URL. Example: <code class="bg-slate-100 px-1 py-0.5 rounded text-slate-600">https://youtu.be/dQw4w9WgXcQ</code> or <code class="bg-slate-100 px-1 py-0.5 rounded text-slate-600">https://www.youtube.com/watch?v=dQw4w9WgXcQ</code></p>
+                        <input type="text" id="sc-yt-url" placeholder="https://www.youtube.com/watch?v=..." class="w-full px-4 py-3 rounded-xl bg-slate-50 border-2 border-slate-100 focus:border-red-500 outline-none font-bold text-sm">
+                        <div id="sc-yt-preview" class="hidden mt-3 rounded-2xl overflow-hidden border border-slate-200 shadow-sm aspect-video bg-slate-100">
+                            <iframe id="sc-yt-preview-frame" src="" class="w-full h-full" frameborder="0" allowfullscreen></iframe>
+                        </div>
+                    </div>
+
+                    <div class="flex gap-3 pt-2 border-t border-slate-100">
+                        <button onclick="window.previewStudyContent()" class="px-6 py-3 bg-slate-100 text-slate-700 font-bold rounded-xl hover:bg-slate-200 transition-colors text-sm">👁 Preview</button>
+                        <button onclick="window.saveStudyContent()" class="flex-1 py-3 bg-violet-600 text-white font-black rounded-xl shadow-md hover:bg-violet-700 active:scale-[0.98] transition-all">📚 Publish Study Material</button>
+                    </div>
+
+                    <!-- Preview area -->
+                    <div id="sc-admin-preview" class="hidden mt-2 p-4 bg-slate-50 border border-slate-200 rounded-2xl">
+                        <p class="text-xs font-black text-slate-400 uppercase tracking-widest mb-3">Preview</p>
+                        <div id="sc-admin-preview-content"></div>
+                    </div>
+                </div>
+
+                <!-- Filter + list -->
+                <div class="flex flex-col sm:flex-row gap-3 items-start sm:items-center justify-between">
+                    <h3 class="text-xl font-black text-slate-800">Published Materials (<span id="sc-total-count">0</span>)</h3>
+                    <div class="flex gap-2 flex-wrap">
+                        <button onclick="window.filterStudy('all')" id="sc-filter-all" class="px-4 py-2 bg-slate-800 text-white font-bold rounded-xl text-sm">All</button>
+                        <button onclick="window.filterStudy('instagram')" id="sc-filter-instagram" class="px-4 py-2 bg-slate-100 text-slate-700 font-bold rounded-xl text-sm hover:bg-slate-200">📸 Instagram</button>
+                        <button onclick="window.filterStudy('youtube')" id="sc-filter-youtube" class="px-4 py-2 bg-slate-100 text-slate-700 font-bold rounded-xl text-sm hover:bg-slate-200">▶️ YouTube</button>
+                    </div>
+                </div>
+
+                <div id="sc-admin-list" class="space-y-4"></div>
+                <div id="sc-admin-empty" class="hidden p-10 text-center text-slate-400 font-bold bg-white rounded-2xl border border-slate-200">No study materials published yet.</div>
+            </div>
+
             <!-- Settings View -->
             <div id="view-settings" class="hidden-view space-y-6 max-w-4xl">
                 <h2 class="text-3xl font-black text-slate-900">Platform Settings</h2>
@@ -683,7 +770,7 @@
         const getPublicCol = (colName) => collection(db, 'artifacts', appId, 'public', 'data', colName);
         const getPublicDoc = (colName, docId) => doc(db, 'artifacts', appId, 'public', 'data', colName, docId);
 
-        let globalData = { users: [], results: [], quizzes: [], config: {}, seasons: [], certificates: [] };
+        let globalData = { users: [], results: [], quizzes: [], config: {}, seasons: [], certificates: [], studyContent: [] };
         let activeQuizEditor = null;
         let tempLogoBase64 = "";
         let user = null;
@@ -926,7 +1013,7 @@
         // TAB SWITCHING
         // ========================
         window.switchTab = (tab) => {
-            ['dashboard', 'students', 'certificates', 'quizzes', 'results', 'seasons', 'audit', 'settings'].forEach(t => {
+            ['dashboard', 'students', 'certificates', 'quizzes', 'results', 'seasons', 'study', 'audit', 'settings'].forEach(t => {
                 document.getElementById(`view-${t}`)?.classList.add('hidden-view');
                 document.getElementById(`nav-${t}`)?.classList.remove('active');
             });
@@ -947,6 +1034,7 @@
             if (tab === 'audit') renderAuditLog();
             if (tab === 'results') renderAnalytics();
             if (tab === 'certificates') { renderCertificates(); if (!document.getElementById('cert-id-field').value) window.regenerateCertId(); }
+            if (tab === 'study') { window.initStudyAdmin(); }
         };
 
         // ========================
@@ -987,6 +1075,15 @@
                 document.getElementById('stat-cert-issued').innerText = globalData.certificates.length;
                 renderCertificates();
             }, err => console.error("Certificates sync error:", err));
+
+            onSnapshot(getPublicCol('study_content'), snap => {
+                globalData.studyContent = snap.docs.map(d => ({ id: d.id, ...d.data() }));
+                const countEl = document.getElementById('nav-study-count');
+                if (countEl) countEl.innerText = globalData.studyContent.length;
+                if (!document.getElementById('view-study').classList.contains('hidden-view')) {
+                    renderStudyAdmin();
+                }
+            }, err => console.error("Study content sync error:", err));
         };
 
         // ========================
@@ -2139,6 +2236,196 @@
                 addAuditEntry('danger', `Certificate deleted: ${certId} by ${currentAdminEmail}`);
                 showToast("Certificate deleted.");
             } catch (e) { alert("Failed to delete certificate."); }
+        };
+
+        // ========================
+        // STUDY CONTENT
+        // ========================
+        let scFilter = 'all';
+        let scInstaUrlCount = 0;
+
+        window.initStudyAdmin = () => {
+            // Init with one insta URL field if empty
+            const list = document.getElementById('sc-insta-urls-list');
+            if (list && list.children.length === 0) window.addInstaUrlField();
+            renderStudyAdmin();
+        };
+
+        window.addInstaUrlField = () => {
+            const list = document.getElementById('sc-insta-urls-list');
+            if (!list) return;
+            scInstaUrlCount++;
+            const idx = scInstaUrlCount;
+            const row = document.createElement('div');
+            row.className = 'flex gap-2 items-center';
+            row.id = `sc-insta-row-${idx}`;
+            row.innerHTML = `
+                <input type="text" id="sc-insta-url-${idx}" placeholder="https://www.instagram.com/p/…" class="flex-1 px-4 py-3 rounded-xl bg-slate-50 border-2 border-slate-100 focus:border-pink-400 outline-none font-bold text-sm font-mono">
+                <button type="button" onclick="document.getElementById('sc-insta-row-${idx}').remove()" class="w-9 h-9 flex items-center justify-center bg-rose-100 text-rose-600 rounded-lg hover:bg-rose-200 font-bold text-lg flex-shrink-0">✕</button>
+            `;
+            list.appendChild(row);
+        };
+
+        window.updateScTypeUI = () => {
+            const type = document.querySelector('input[name="sc-type"]:checked')?.value;
+            document.getElementById('sc-insta-fields').classList.toggle('hidden', type !== 'instagram');
+            document.getElementById('sc-yt-fields').classList.toggle('hidden', type !== 'youtube');
+        };
+
+        // Live YouTube URL → embed preview
+        document.addEventListener('input', (e) => {
+            if (e.target.id === 'sc-yt-url') {
+                const vid = extractYouTubeId(e.target.value);
+                const preview = document.getElementById('sc-yt-preview');
+                const frame = document.getElementById('sc-yt-preview-frame');
+                if (vid) {
+                    frame.src = `https://www.youtube.com/embed/${vid}`;
+                    preview.classList.remove('hidden');
+                } else {
+                    preview.classList.add('hidden');
+                    frame.src = '';
+                }
+            }
+        });
+
+        const extractYouTubeId = (url) => {
+            if (!url) return null;
+            const patterns = [
+                /(?:youtube\.com\/watch\?v=|youtu\.be\/|youtube\.com\/embed\/|youtube\.com\/v\/|youtube\.com\/shorts\/)([a-zA-Z0-9_-]{11})/,
+                /[?&]v=([a-zA-Z0-9_-]{11})/
+            ];
+            for (const p of patterns) {
+                const m = url.match(p);
+                if (m) return m[1];
+            }
+            return null;
+        };
+
+        const extractInstaShortcode = (url) => {
+            // Extract shortcode from instagram.com/p/SHORTCODE/ or /reel/SHORTCODE/
+            const m = url.match(/instagram\.com\/(?:p|reel|tv)\/([A-Za-z0-9_-]+)/);
+            return m ? m[1] : null;
+        };
+
+        window.previewStudyContent = () => {
+            const type = document.querySelector('input[name="sc-type"]:checked')?.value;
+            const previewArea = document.getElementById('sc-admin-preview');
+            const previewContent = document.getElementById('sc-admin-preview-content');
+            previewArea.classList.remove('hidden');
+            if (type === 'youtube') {
+                const url = document.getElementById('sc-yt-url')?.value.trim();
+                const vid = extractYouTubeId(url);
+                if (!vid) { previewContent.innerHTML = `<p class="text-rose-500 font-bold text-sm">⚠️ Could not extract YouTube video ID. Check the URL.</p>`; return; }
+                previewContent.innerHTML = `<div class="rounded-2xl overflow-hidden aspect-video bg-black shadow-md"><iframe src="https://www.youtube.com/embed/${vid}" class="w-full h-full" frameborder="0" allowfullscreen></iframe></div>`;
+            } else {
+                const urls = [...document.querySelectorAll('[id^="sc-insta-url-"]')].map(el => el.value.trim()).filter(Boolean);
+                if (!urls.length) { previewContent.innerHTML = `<p class="text-rose-500 font-bold text-sm">⚠️ No Instagram URLs entered.</p>`; return; }
+                previewContent.innerHTML = urls.map(url => {
+                    const sc = extractInstaShortcode(url);
+                    if (!sc) return `<p class="text-amber-600 font-bold text-xs">⚠️ Could not parse: ${url}</p>`;
+                    return `<div class="rounded-2xl overflow-hidden border border-pink-200 shadow-sm mb-3 bg-white" style="max-width:540px;"><iframe src="https://www.instagram.com/p/${sc}/embed/" width="100%" height="480" frameborder="0" scrolling="no" allowtransparency="true" style="border:none;overflow:hidden;"></iframe></div>`;
+                }).join('');
+            }
+        };
+
+        window.saveStudyContent = async () => {
+            const type = document.querySelector('input[name="sc-type"]:checked')?.value;
+            const title = document.getElementById('sc-title').value.trim();
+            const category = document.getElementById('sc-category').value.trim();
+            if (!title) return alert("Please enter a title / description for this material.");
+
+            let payload;
+            if (type === 'youtube') {
+                const url = document.getElementById('sc-yt-url')?.value.trim();
+                const vid = extractYouTubeId(url);
+                if (!vid) return alert("Could not extract YouTube video ID. Please check the URL.");
+                payload = { type: 'youtube', title, category, youtubeId: vid, originalUrl: url, createdAt: Date.now(), issuedBy: currentAdminEmail };
+            } else {
+                const urls = [...document.querySelectorAll('[id^="sc-insta-url-"]')].map(el => el.value.trim()).filter(Boolean);
+                if (!urls.length) return alert("Please add at least one Instagram post URL.");
+                const shortcodes = urls.map(u => ({ url: u, shortcode: extractInstaShortcode(u) })).filter(x => x.shortcode);
+                if (!shortcodes.length) return alert("Could not parse any valid Instagram post URLs. Make sure they contain /p/ or /reel/.");
+                payload = { type: 'instagram', title, category, posts: shortcodes, createdAt: Date.now(), issuedBy: currentAdminEmail };
+            }
+
+            const id = 'sc_' + Date.now();
+            try {
+                await setDoc(getPublicDoc('study_content', id), { id, ...payload });
+                addAuditEntry('success', `Study content added: "${title}" [${type}] by ${currentAdminEmail}`);
+                showToast("Study material published! 📚");
+                // Reset form
+                document.getElementById('sc-title').value = '';
+                document.getElementById('sc-category').value = '';
+                document.getElementById('sc-yt-url').value = '';
+                document.getElementById('sc-yt-preview').classList.add('hidden');
+                document.getElementById('sc-insta-urls-list').innerHTML = '';
+                scInstaUrlCount = 0;
+                window.addInstaUrlField();
+                document.getElementById('sc-admin-preview').classList.add('hidden');
+            } catch(e) { console.error(e); alert("Failed to save. Check connection."); }
+        };
+
+        let scFilterCurrent = 'all';
+        window.filterStudy = (f) => {
+            scFilterCurrent = f;
+            ['all', 'instagram', 'youtube'].forEach(x => {
+                const btn = document.getElementById(`sc-filter-${x}`);
+                if (btn) btn.className = x === f
+                    ? 'px-4 py-2 bg-slate-800 text-white font-bold rounded-xl text-sm'
+                    : 'px-4 py-2 bg-slate-100 text-slate-700 font-bold rounded-xl text-sm hover:bg-slate-200';
+            });
+            renderStudyAdmin();
+        };
+
+        const renderStudyAdmin = () => {
+            const list = document.getElementById('sc-admin-list');
+            const empty = document.getElementById('sc-admin-empty');
+            const totalEl = document.getElementById('sc-total-count');
+            if (!list) return;
+
+            const items = (globalData.studyContent || [])
+                .filter(x => scFilterCurrent === 'all' || x.type === scFilterCurrent)
+                .sort((a, b) => (b.createdAt || 0) - (a.createdAt || 0));
+
+            if (totalEl) totalEl.innerText = (globalData.studyContent || []).length;
+
+            if (items.length === 0) {
+                list.innerHTML = '';
+                empty.classList.remove('hidden');
+                return;
+            }
+            empty.classList.add('hidden');
+
+            list.innerHTML = items.map(item => {
+                const dateStr = item.createdAt ? new Date(item.createdAt).toLocaleDateString() : '—';
+                const typeBadge = item.type === 'youtube'
+                    ? `<span class="px-2 py-1 bg-red-100 text-red-700 text-[10px] font-black rounded uppercase">▶️ YouTube</span>`
+                    : `<span class="px-2 py-1 bg-pink-100 text-pink-700 text-[10px] font-black rounded uppercase">📸 Instagram</span>`;
+                const catBadge = item.category ? `<span class="px-2 py-1 bg-violet-100 text-violet-700 text-[10px] font-black rounded">${item.category}</span>` : '';
+                const detail = item.type === 'youtube'
+                    ? `<img src="https://img.youtube.com/vi/${item.youtubeId}/mqdefault.jpg" class="w-24 h-14 object-cover rounded-lg border border-slate-200 flex-shrink-0">`
+                    : `<div class="flex gap-1">${(item.posts || []).slice(0,3).map(p => `<div class="w-10 h-10 rounded-lg bg-pink-100 flex items-center justify-center text-sm font-black text-pink-500 border border-pink-200">📸</div>`).join('')}${(item.posts||[]).length > 3 ? `<div class="w-10 h-10 rounded-lg bg-pink-50 flex items-center justify-center text-xs font-black text-pink-400">+${(item.posts||[]).length-3}</div>` : ''}</div>`;
+
+                return `<div class="bg-white p-5 rounded-2xl border border-slate-200 shadow-sm flex items-start gap-4 hover:shadow-md transition-shadow">
+                    ${detail}
+                    <div class="flex-1 min-w-0">
+                        <div class="flex flex-wrap gap-2 mb-1">${typeBadge}${catBadge}</div>
+                        <div class="font-black text-slate-800 text-base truncate">${item.title}</div>
+                        <div class="text-[10px] text-slate-400 font-bold mt-1">Added ${dateStr}${item.issuedBy ? ` · ${item.issuedBy}` : ''}${item.type === 'instagram' ? ` · ${(item.posts||[]).length} post(s)` : ''}</div>
+                    </div>
+                    <button onclick="window.deleteStudyContent('${item.id}')" class="px-3 py-2 bg-rose-50 text-rose-600 font-bold rounded-xl hover:bg-rose-100 transition-colors text-xs flex-shrink-0">🗑️ Delete</button>
+                </div>`;
+            }).join('');
+        };
+
+        window.deleteStudyContent = async (id) => {
+            const item = (globalData.studyContent || []).find(x => x.id === id);
+            if (!confirm(`Delete "${item?.title || 'this item'}"? Students will no longer see it.`)) return;
+            try {
+                await deleteDoc(getPublicDoc('study_content', id));
+                addAuditEntry('danger', `Study content deleted: "${item?.title}" by ${currentAdminEmail}`);
+                showToast("Study material removed.");
+            } catch(e) { alert("Failed to delete."); }
         };
 
     </script>
