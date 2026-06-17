@@ -100,7 +100,7 @@
         <!-- Sidebar -->
         <aside class="w-64 bg-white border-r border-slate-200 flex flex-col shrink-0">
             <div class="h-16 flex items-center px-6 border-b border-slate-200 gap-3">
-                <img id="sidebar-logo" src="" class="hidden w-8 h-8 rounded-lg object-cover">
+                <img id="sidebar-logo" src="" class="hidden w-10 h-10 rounded-lg object-contain bg-black">
                 <h1 class="font-black text-lg tracking-tight text-indigo-600" id="sidebar-title">Admin Control</h1>
             </div>
             <nav class="flex-1 py-4 space-y-1">
@@ -206,7 +206,7 @@
                 <div class="flex justify-between items-center flex-wrap gap-4">
                     <h2 class="text-3xl font-black text-slate-900">Student Records</h2>
                     <div class="flex gap-3">
-                        <input type="text" id="student-search" oninput="window.filterStudents()" placeholder="Search by name or ID..." class="px-4 py-2 rounded-xl bg-white border border-slate-200 font-bold text-sm outline-none focus:border-indigo-500 w-56">
+                        <input type="text" id="student-search" oninput="window.filterStudents()" placeholder="Search by name, @username, or ID..." class="px-4 py-2 rounded-xl bg-white border border-slate-200 font-bold text-sm outline-none focus:border-indigo-500 w-56">
                         <button onclick="window.exportStudentsCSV()" class="px-4 py-2 bg-emerald-50 border border-emerald-200 text-emerald-700 font-bold rounded-xl text-sm hover:bg-emerald-100 transition-colors" data-tip="Export as CSV">📤 Export CSV</button>
                     </div>
                 </div>
@@ -408,7 +408,7 @@
                         <div>
                             <label class="block text-xs font-black text-slate-500 uppercase tracking-widest mb-2">Platform Logo</label>
                             <div class="flex items-center gap-4">
-                                <img id="set-logo-preview" src="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 24 24' stroke='%23ccc'%3E%3Cpath stroke-linecap='round' stroke-linejoin='round' stroke-width='2' d='M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z' /%3E%3C/svg%3E" class="w-16 h-16 rounded-xl object-cover bg-slate-50 border border-slate-200">
+                                <img id="set-logo-preview" src="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 24 24' stroke='%23ccc'%3E%3Cpath stroke-linecap='round' stroke-linejoin='round' stroke-width='2' d='M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z' /%3E%3C/svg%3E" class="w-16 h-16 rounded-xl object-contain bg-slate-900 border border-slate-200">
                                 <div>
                                     <label for="set-logo" class="cursor-pointer bg-slate-100 text-slate-700 text-xs font-bold px-4 py-2 rounded-lg hover:bg-slate-200 transition-colors border border-slate-300">Upload Image</label>
                                     <input type="file" id="set-logo" accept="image/*" class="hidden" onchange="window.handleLogoUpload(event)">
@@ -620,6 +620,43 @@
                     <div class="p-6 overflow-y-auto flex-1 bg-slate-50 flex items-center justify-center" id="cert-view-body"></div>
                     <div class="p-4 border-t border-slate-200">
                         <a id="cert-view-download" href="#" download="certificate" class="block w-full text-center py-3 bg-indigo-600 text-white font-bold rounded-xl hover:bg-indigo-700 transition-colors">⬇ Download File</a>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Manual Winner Selection Modal -->
+            <div id="modal-manual-winner" class="hidden-view fixed inset-0 z-[60] bg-slate-900/80 backdrop-blur-sm flex items-center justify-center p-4">
+                <div class="bg-white w-full max-w-lg rounded-3xl shadow-2xl overflow-hidden max-h-[90vh] flex flex-col">
+                    <div class="p-6 border-b border-slate-200 flex justify-between items-center shrink-0">
+                        <div>
+                            <h3 class="text-lg font-black text-slate-900" id="mw-modal-title">Set Winners Manually</h3>
+                            <p class="text-xs text-slate-500 font-bold mt-1">Pick any students to announce as winners — overrides automatic calculation.</p>
+                        </div>
+                        <button onclick="window.closeManualWinnerModal()" class="w-8 h-8 flex items-center justify-center bg-slate-200 hover:bg-rose-100 hover:text-rose-600 rounded-full font-bold">✕</button>
+                    </div>
+                    <div class="p-6 overflow-y-auto flex-1 bg-white space-y-5">
+                        <div>
+                            <label class="block text-xs font-black text-amber-600 uppercase mb-2">🥇 1st Place</label>
+                            <input type="text" id="mw-search-1" oninput="window.searchManualWinner(1)" placeholder="Search by name, username, or ID..." class="w-full px-4 py-3 rounded-xl bg-slate-50 border-2 border-slate-100 focus:border-indigo-500 outline-none font-bold text-slate-700 mb-2">
+                            <div id="mw-results-1" class="space-y-1 max-h-32 overflow-y-auto"></div>
+                            <div id="mw-selected-1" class="hidden mt-2 p-3 bg-amber-50 border border-amber-200 rounded-xl text-sm font-bold text-amber-900 flex justify-between items-center"></div>
+                        </div>
+                        <div>
+                            <label class="block text-xs font-black text-slate-500 uppercase mb-2">🥈 2nd Place <span class="font-medium normal-case">(optional)</span></label>
+                            <input type="text" id="mw-search-2" oninput="window.searchManualWinner(2)" placeholder="Search by name, username, or ID..." class="w-full px-4 py-3 rounded-xl bg-slate-50 border-2 border-slate-100 focus:border-indigo-500 outline-none font-bold text-slate-700 mb-2">
+                            <div id="mw-results-2" class="space-y-1 max-h-32 overflow-y-auto"></div>
+                            <div id="mw-selected-2" class="hidden mt-2 p-3 bg-slate-100 border border-slate-200 rounded-xl text-sm font-bold text-slate-700 flex justify-between items-center"></div>
+                        </div>
+                        <div>
+                            <label class="block text-xs font-black text-slate-500 uppercase mb-2">🥉 3rd Place <span class="font-medium normal-case">(optional)</span></label>
+                            <input type="text" id="mw-search-3" oninput="window.searchManualWinner(3)" placeholder="Search by name, username, or ID..." class="w-full px-4 py-3 rounded-xl bg-slate-50 border-2 border-slate-100 focus:border-indigo-500 outline-none font-bold text-slate-700 mb-2">
+                            <div id="mw-results-3" class="space-y-1 max-h-32 overflow-y-auto"></div>
+                            <div id="mw-selected-3" class="hidden mt-2 p-3 bg-slate-100 border border-slate-200 rounded-xl text-sm font-bold text-slate-700 flex justify-between items-center"></div>
+                        </div>
+                    </div>
+                    <div class="p-6 border-t border-slate-200 bg-slate-50 flex gap-3 shrink-0">
+                        <button onclick="window.closeManualWinnerModal()" class="flex-1 py-3 font-bold text-slate-500 bg-white border border-slate-200 hover:bg-slate-100 rounded-xl transition-colors">Cancel</button>
+                        <button onclick="window.saveManualWinners()" class="flex-1 py-3 bg-amber-500 text-white font-black rounded-xl shadow-md hover:bg-amber-600 transition-colors">Announce Winners</button>
                     </div>
                 </div>
             </div>
@@ -1065,7 +1102,7 @@
         const renderStudents = () => {
             const search = (document.getElementById('student-search')?.value || '').toLowerCase();
             const filtered = globalData.users.filter(u =>
-                !search || u.name?.toLowerCase().includes(search) || u.enrollmentId?.toLowerCase().includes(search)
+                !search || u.name?.toLowerCase().includes(search) || u.enrollmentId?.toLowerCase().includes(search) || u.username?.toLowerCase().includes(search)
             );
             const tbody = document.getElementById('student-table-body');
             const emptyEl = document.getElementById('student-empty');
@@ -1090,6 +1127,7 @@
                                 <div class="font-bold text-slate-800">${u.name}</div>
                                 <div class="flex items-center gap-2 mt-0.5">
                                     <span class="text-[10px] font-black text-indigo-600 bg-indigo-50 border border-indigo-200 px-2 py-0.5 rounded-md font-mono">${u.enrollmentId || '—'}</span>
+                                    ${u.username ? `<span class="text-[10px] font-bold text-amber-600">@${u.username}</span>` : ''}
                                     <span class="text-[10px] font-mono text-slate-300">${u.id.slice(0, 8)}…</span>
                                 </div>
                             </div>
@@ -1218,8 +1256,10 @@
                     </div>
                     <div class="text-xs font-bold text-slate-500 mb-2">📅 ${new Date(s.start).toLocaleDateString()} — ${new Date(s.end).toLocaleDateString()}</div>
                     ${winDisplay}
-                    <div class="mt-4 flex gap-3 border-t border-slate-100 pt-4">
+                    <div class="mt-4 flex gap-3 border-t border-slate-100 pt-4 flex-wrap">
                         ${!s.winner ? `<button onclick="window.announceSeasonWinner('${s.id}')" class="px-4 py-2 bg-indigo-50 text-indigo-700 font-bold rounded-xl hover:bg-indigo-100 transition-colors text-sm">Calculate Winners & Check Draws</button>` : ''}
+                        <button onclick="window.openManualWinnerModal('${s.id}')" class="px-4 py-2 bg-amber-50 text-amber-700 font-bold rounded-xl hover:bg-amber-100 transition-colors text-sm">${s.winner ? 'Edit Winners Manually' : 'Set Winners Manually'}</button>
+                        ${s.winner ? `<button onclick="window.clearSeasonWinner('${s.id}')" class="px-4 py-2 bg-slate-50 text-slate-600 font-bold rounded-xl hover:bg-slate-100 transition-colors text-sm">Clear Winners</button>` : ''}
                         <button onclick="window.deleteSeason('${s.id}')" class="px-3 py-2 bg-rose-50 text-rose-600 font-bold rounded-xl hover:bg-rose-100 transition-colors text-sm">Delete</button>
                     </div>
                 </div>`;
@@ -1337,7 +1377,134 @@
         };
 
         // ========================
-        // SETTINGS
+        // MANUAL WINNER OVERRIDE
+        // ========================
+        let manualWinnerSeasonId = null;
+        let manualWinnerPicks = { 1: null, 2: null, 3: null };
+
+        const computeUserXp = (uid) => globalData.results
+            .filter(r => r.studentId === uid)
+            .reduce((s, r) => s + r.score, 0);
+
+        window.openManualWinnerModal = (seasonId) => {
+            const s = globalData.seasons.find(x => x.id === seasonId);
+            if (!s) return;
+            manualWinnerSeasonId = seasonId;
+            manualWinnerPicks = { 1: null, 2: null, 3: null };
+
+            // Pre-fill from existing winner object if editing
+            if (s.winner) {
+                ['first', 'second', 'third'].forEach((key, idx) => {
+                    const w = s.winner[key];
+                    if (w) manualWinnerPicks[idx + 1] = { id: w.id, name: w.name, enrollmentId: w.enrollmentId || null, xp: w.xp };
+                });
+            }
+
+            document.getElementById('mw-modal-title').innerText = `Set Winners — ${s.name}`;
+            [1, 2, 3].forEach(pos => {
+                document.getElementById(`mw-search-${pos}`).value = '';
+                document.getElementById(`mw-results-${pos}`).innerHTML = '';
+                renderManualWinnerSelected(pos);
+            });
+
+            document.getElementById('modal-manual-winner').classList.remove('hidden-view');
+        };
+
+        window.closeManualWinnerModal = () => {
+            document.getElementById('modal-manual-winner').classList.add('hidden-view');
+            manualWinnerSeasonId = null;
+        };
+
+        const renderManualWinnerSelected = (pos) => {
+            const pick = manualWinnerPicks[pos];
+            const box = document.getElementById(`mw-selected-${pos}`);
+            if (!pick) {
+                box.classList.add('hidden');
+                box.innerHTML = '';
+                return;
+            }
+            box.classList.remove('hidden');
+            box.innerHTML = `
+                <span>${pick.name}${pick.enrollmentId ? ` <span class="font-mono text-xs opacity-70">[${pick.enrollmentId}]</span>` : ''} — ${pick.xp} XP</span>
+                <button onclick="window.clearManualWinnerPick(${pos})" class="text-rose-500 hover:text-rose-700 font-black px-2">✕</button>
+            `;
+        };
+
+        window.clearManualWinnerPick = (pos) => {
+            manualWinnerPicks[pos] = null;
+            renderManualWinnerSelected(pos);
+        };
+
+        window.searchManualWinner = (pos) => {
+            const q = (document.getElementById(`mw-search-${pos}`).value || '').toLowerCase().trim();
+            const resultsEl = document.getElementById(`mw-results-${pos}`);
+            if (!q) { resultsEl.innerHTML = ''; return; }
+
+            const matches = (globalData.users || []).filter(u =>
+                u.name?.toLowerCase().includes(q) ||
+                u.username?.toLowerCase().includes(q) ||
+                u.enrollmentId?.toLowerCase().includes(q)
+            ).slice(0, 8);
+
+            if (matches.length === 0) {
+                resultsEl.innerHTML = `<div class="text-xs text-slate-400 font-bold p-2">No students found.</div>`;
+                return;
+            }
+
+            resultsEl.innerHTML = matches.map(u => {
+                const xp = computeUserXp(u.id);
+                return `
+                <div onclick="window.pickManualWinner(${pos}, '${u.id}')" class="p-2.5 rounded-lg hover:bg-indigo-50 cursor-pointer flex justify-between items-center border border-slate-100">
+                    <span class="text-sm font-bold text-slate-700">${u.name} ${u.username ? `<span class="text-indigo-400 font-normal">@${u.username}</span>` : ''}</span>
+                    <span class="text-xs font-mono text-slate-400">${xp} XP</span>
+                </div>`;
+            }).join('');
+        };
+
+        window.pickManualWinner = (pos, uid) => {
+            const u = globalData.users.find(x => x.id === uid);
+            if (!u) return;
+            manualWinnerPicks[pos] = { id: u.id, name: u.name, enrollmentId: u.enrollmentId || null, xp: computeUserXp(u.id) };
+            document.getElementById(`mw-search-${pos}`).value = '';
+            document.getElementById(`mw-results-${pos}`).innerHTML = '';
+            renderManualWinnerSelected(pos);
+        };
+
+        window.saveManualWinners = async () => {
+            if (!manualWinnerSeasonId) return;
+            const first = manualWinnerPicks[1];
+            if (!first) return alert("Please select at least a 1st place winner.");
+
+            const s = globalData.seasons.find(x => x.id === manualWinnerSeasonId);
+            const winnerObj = {
+                first: first,
+                second: manualWinnerPicks[2] || null,
+                third: manualWinnerPicks[3] || null,
+                id: first.id, name: first.name, xp: first.xp,
+                manual: true
+            };
+
+            try {
+                await updateDoc(getPublicDoc('exam_seasons', manualWinnerSeasonId), { winner: winnerObj });
+                addAuditEntry('success', `Winners manually set for season "${s?.name || manualWinnerSeasonId}" by ${currentAdminEmail}`);
+                showToast("Winners announced manually! 🏆");
+                window.closeManualWinnerModal();
+            } catch (e) {
+                alert("Failed to save winners. Check connection.");
+            }
+        };
+
+        window.clearSeasonWinner = async (seasonId) => {
+            if (!confirm("Clear the announced winners for this season? This will remove the public announcement.")) return;
+            try {
+                await updateDoc(getPublicDoc('exam_seasons', seasonId), { winner: null });
+                addAuditEntry('info', `Winners cleared for season "${seasonId}" by ${currentAdminEmail}`);
+                showToast("Winners cleared.");
+            } catch (e) {
+                alert("Failed to clear winners.");
+            }
+        };
+
         // ========================
         window.saveSettings = async () => {
             const nw = document.getElementById('set-webname').value.trim();
