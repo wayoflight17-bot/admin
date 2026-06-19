@@ -56,6 +56,29 @@
         /* Badge pulse for live counts */
         @keyframes pulse-badge { 0%,100% { opacity: 1; } 50% { opacity: 0.6; } }
         .live-badge { animation: pulse-badge 2s infinite; }
+
+        /* ===== MOBILE RESPONSIVE FIXES ===== */
+        @media (max-width: 768px) {
+            aside#admin-sidebar {
+                position: fixed; left: 0; top: 0; bottom: 0;
+                z-index: 200; transform: translateX(-100%);
+                transition: transform 0.28s cubic-bezier(.4,0,.2,1);
+                width: 260px !important;
+                box-shadow: 4px 0 24px rgba(0,0,0,0.12);
+            }
+            aside#admin-sidebar.open { transform: translateX(0); }
+            #sidebar-overlay {
+                display: none; position: fixed; inset: 0; z-index: 190;
+                background: rgba(15,23,42,0.45); backdrop-filter: blur(2px);
+            }
+            #sidebar-overlay.open { display: block; }
+            #mobile-menu-btn { display: flex !important; }
+            main#admin-main { padding: 16px !important; }
+        }
+        @media (min-width: 769px) {
+            #mobile-menu-btn { display: none !important; }
+            aside#admin-sidebar { position: relative !important; transform: none !important; box-shadow: none !important; }
+        }
     </style>
 </head>
 <body class="text-slate-800">
@@ -97,11 +120,18 @@
     <!-- Main App Layout -->
     <div id="admin-app" class="hidden-view flex h-screen overflow-hidden">
         
+        <!-- Mobile sidebar backdrop -->
+        <div id="sidebar-overlay" onclick="window.closeSidebar()"></div>
+
         <!-- Sidebar -->
-        <aside class="w-64 bg-white border-r border-slate-200 flex flex-col shrink-0">
+        <aside id="admin-sidebar" class="w-64 bg-white border-r border-slate-200 flex flex-col shrink-0">
             <div class="h-16 flex items-center px-6 border-b border-slate-200 gap-3">
                 <img id="sidebar-logo" src="" class="hidden w-8 h-8 rounded-lg object-cover">
                 <h1 class="font-black text-lg tracking-tight text-indigo-600" id="sidebar-title">Admin Control</h1>
+                <!-- Close button (mobile only) -->
+                <button onclick="window.closeSidebar()" class="ml-auto p-1.5 rounded-lg hover:bg-slate-100 text-slate-500 md:hidden" aria-label="Close menu">
+                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg>
+                </button>
             </div>
             <nav class="flex-1 py-4 space-y-1">
                 <a href="#" onclick="window.switchTab('dashboard')" id="nav-dashboard" class="nav-item active flex items-center gap-3 px-6 py-3 text-sm font-bold text-slate-600 hover:bg-slate-50 hover:text-slate-900 transition-colors">
@@ -151,7 +181,14 @@
         </aside>
 
         <!-- Main Content Area -->
-        <main class="flex-1 overflow-y-auto p-8 relative">
+        <main id="admin-main" class="flex-1 overflow-y-auto p-8 relative">
+            <!-- Mobile top bar (hamburger + title) -->
+            <div class="sticky top-0 z-40 flex items-center gap-3 -mx-4 px-4 py-3 mb-4 bg-slate-100/95 backdrop-blur border-b border-slate-200 md:hidden">
+                <button id="mobile-menu-btn" onclick="window.openSidebar()" style="display:none" class="p-2 rounded-xl bg-white border border-slate-200 shadow-sm text-slate-700" aria-label="Open menu">
+                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16"/></svg>
+                </button>
+                <span class="font-black text-slate-800 text-sm" id="mobile-section-title">Admin</span>
+            </div>
             
             <!-- Dashboard View -->
             <div id="view-dashboard" class="space-y-6">
@@ -1025,6 +1062,18 @@
         // ========================
         // TAB SWITCHING
         // ========================
+        // ========================
+        // MOBILE SIDEBAR CONTROLS
+        // ========================
+        window.openSidebar = () => {
+            document.getElementById('admin-sidebar').classList.add('open');
+            document.getElementById('sidebar-overlay').classList.add('open');
+        };
+        window.closeSidebar = () => {
+            document.getElementById('admin-sidebar').classList.remove('open');
+            document.getElementById('sidebar-overlay').classList.remove('open');
+        };
+
         window.switchTab = (tab) => {
             ['dashboard', 'students', 'certificates', 'quizzes', 'results', 'seasons', 'study', 'audit', 'settings'].forEach(t => {
                 document.getElementById(`view-${t}`)?.classList.add('hidden-view');
@@ -1032,6 +1081,14 @@
             });
             document.getElementById(`view-${tab}`)?.classList.remove('hidden-view');
             document.getElementById(`nav-${tab}`)?.classList.add('active');
+
+            // Update mobile header title
+            const titleMap = { dashboard:'Dashboard', students:'Students', certificates:'Certificates', quizzes:'Test Builder', results:'Analytics', seasons:'Seasons', study:'Study Content', audit:'Audit Log', settings:'Settings' };
+            const mTitle = document.getElementById('mobile-section-title');
+            if (mTitle) mTitle.innerText = titleMap[tab] || 'Admin';
+
+            // Auto-close sidebar on mobile after selection
+            window.closeSidebar();
 
             if (tab === 'settings') {
                 document.getElementById('set-webname').value = globalData.config.webName || '';
