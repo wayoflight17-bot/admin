@@ -697,7 +697,6 @@
                                 <option value="fill">Fill in the Blank</option>
                                 <option value="match">Matching Pairs</option>
                                 <option value="truefalse">True / False</option>
-                                <option value="short">Short Answer</option>
                             </select>
                         </div>
 
@@ -1782,10 +1781,17 @@
                             <input type="text" value="${q.correct || ''}" onchange="window.updateQ(${i}, 'correct', this.value)" class="w-full p-3 bg-emerald-50 border-2 border-emerald-100 focus:border-emerald-400 rounded-xl text-sm font-bold text-emerald-900 outline-none">
                         </div>
                     </div>`;
-                } else if (q.type === 'fill' || q.type === 'short') {
-                    internals = `<div class="mt-4">
-                        <label class="text-[10px] uppercase font-black text-slate-400 mb-1 block">Correct Answer</label>
-                        <input type="text" value="${q.correct || ''}" onchange="window.updateQ(${i}, 'correct', this.value)" class="w-full p-3 bg-emerald-50 border-2 border-emerald-100 focus:border-emerald-400 rounded-xl text-sm font-bold text-emerald-900 outline-none">
+                } else if (q.type === 'fill') {
+                    internals = `<div class="space-y-3 mt-4">
+                        <div>
+                            <label class="text-[10px] uppercase font-black text-slate-400 mb-1 block">Answer Options (Comma separated — students drag-drop from these)</label>
+                            <input type="text" value="${(q.options || []).join(', ')}" onchange="window.updateQ(${i}, 'options', this.value)" class="w-full p-3 bg-white border-2 border-slate-200 focus:border-indigo-500 rounded-xl text-sm font-bold outline-none" placeholder="e.g. Paris, London, Berlin, Rome">
+                            <p class="text-[10px] text-slate-400 mt-1 font-medium">Include the correct answer plus distractors. Students will drag one into the blank.</p>
+                        </div>
+                        <div>
+                            <label class="text-[10px] uppercase font-black text-slate-400 mb-1 block">Correct Answer (must match one option exactly)</label>
+                            <input type="text" value="${q.correct || ''}" onchange="window.updateQ(${i}, 'correct', this.value)" class="w-full p-3 bg-emerald-50 border-2 border-emerald-100 focus:border-emerald-400 rounded-xl text-sm font-bold text-emerald-900 outline-none" placeholder="e.g. Paris">
+                        </div>
                     </div>`;
                 } else if (q.type === 'truefalse') {
                     internals = `<div class="mt-4">
@@ -1837,7 +1843,7 @@
             if (!type) return;
             const newQ = { type, q: '', xp: 1 };
             if (type === 'mcq') { newQ.options = []; newQ.correct = ''; }
-            if (type === 'fill' || type === 'short') { newQ.correct = ''; }
+            if (type === 'fill') { newQ.options = []; newQ.correct = ''; }
             if (type === 'truefalse') { newQ.correct = 'True'; }
             if (type === 'match') { newQ.pairs = {}; }
             activeQuizEditor.questions.push(newQ);
@@ -1877,8 +1883,8 @@
                     <div class="mb-5 p-4 bg-slate-50 rounded-xl border border-slate-200">
                         <div class="font-black text-slate-800 mb-2">Q${i + 1}. ${q.q || '<em class="text-slate-400">No prompt</em>'}</div>
                         ${q.type === 'mcq' && q.options ? q.options.map(o => `<div class="text-sm px-3 py-1 rounded-lg mb-1 ${o === q.correct ? 'bg-emerald-100 text-emerald-800 font-black' : 'bg-white border border-slate-200 text-slate-600'}">${o}</div>`).join('') : ''}
+                        ${q.type === 'fill' ? `<div class="mt-2"><div class="text-[10px] font-black text-slate-400 uppercase mb-1">Options: ${(q.options||[]).join(', ') || '—'}</div><div class="text-xs text-emerald-700 font-bold">✓ Correct: ${q.correct || '—'}</div></div>` : ''}
                         ${q.type === 'truefalse' ? `<div class="flex gap-3 mt-1"><span class="px-3 py-1 rounded-lg text-sm font-bold ${q.correct === 'True' ? 'bg-emerald-100 text-emerald-700' : 'bg-slate-100 text-slate-500'}">True</span><span class="px-3 py-1 rounded-lg text-sm font-bold ${q.correct === 'False' ? 'bg-rose-100 text-rose-700' : 'bg-slate-100 text-slate-500'}">False</span></div>` : ''}
-                        ${['fill','short'].includes(q.type) ? `<div class="text-xs text-emerald-700 font-bold mt-1">Answer: ${q.correct || '—'}</div>` : ''}
                         <div class="text-[10px] text-slate-400 font-bold mt-2">XP: ${q.xp || 1}</div>
                     </div>`).join('')}`;
             document.getElementById('quiz-preview-modal').classList.remove('hidden-view');
