@@ -1,4 +1,4 @@
-<!DOCTYPE html>
+x<!DOCTYPE html>
 <html lang="en">
 <head>
     <meta charset="UTF-8">
@@ -683,6 +683,13 @@
                                     <label class="block text-xs font-black text-slate-500 uppercase tracking-widest mb-2">Passing Score (%)</label>
                                     <input type="number" min="0" max="100" id="edit-quiz-passing" class="w-full px-4 py-3 rounded-xl bg-slate-50 border-2 border-slate-100 font-bold outline-none focus:border-indigo-500" placeholder="60">
                                 </div>
+                            </div>
+                            <div>
+                                <label class="block text-xs font-black text-slate-500 uppercase tracking-widest mb-2">📅 Assign to Season <span class="normal-case font-medium text-slate-400">(optional)</span></label>
+                                <select id="edit-quiz-season" class="w-full px-4 py-4 rounded-xl bg-slate-50 border-2 border-slate-100 font-bold outline-none focus:border-indigo-500">
+                                    <option value="">— No Season (General Test) —</option>
+                                </select>
+                                <p class="text-[10px] text-slate-400 font-medium mt-1">A season-linked test only appears on the student Home tab while that season is live. It stays attemptable from the Study tab afterwards too, but XP earned after the season ends won't count toward that season's Top 5 ranking — it still counts toward the all-time Top 10.</p>
                             </div>
                         </div>
 
@@ -1647,13 +1654,18 @@
                 const restrictedBadge = isDrawTest
                     ? `<span class="px-2 py-1 bg-amber-100 text-amber-800 text-[10px] font-black rounded uppercase border border-amber-200">🔒 Draw Test (${q.restrictedTo.length} students)</span>` : '';
                 const timeLimitBadge = q.timeLimit ? `<span class="px-2 py-1 bg-blue-100 text-blue-700 text-[10px] font-black rounded">⏱ ${q.timeLimit}min</span>` : '';
+                const qSeason = q.seasonId ? (globalData.seasons || []).find(s => s.id === q.seasonId) : null;
+                const seasonIsActive = qSeason && Date.now() >= qSeason.start && Date.now() <= qSeason.end;
+                const seasonBadge = qSeason
+                    ? `<span class="px-2 py-1 ${seasonIsActive ? 'bg-emerald-100 text-emerald-700 border-emerald-200' : 'bg-slate-100 text-slate-500 border-slate-200'} text-[10px] font-black rounded uppercase border">${seasonIsActive ? '🟢 ' : '📅 '}${qSeason.name}</span>`
+                    : '';
                 return `
                 <div class="bg-white p-6 rounded-2xl border border-slate-200 shadow-sm flex flex-col justify-between hover:shadow-md transition-all ${isDrawTest ? 'draw-test-card' : ''}">
                     <div>
                         <h4 class="font-black text-xl mb-2 text-slate-800">${q.title}</h4>
                         <div class="flex flex-wrap gap-2 mb-3">
                             <span class="px-2 py-1 bg-slate-100 text-slate-600 font-bold rounded-lg text-[10px] uppercase">${timeStr}</span>
-                            ${restrictedBadge}${timeLimitBadge}
+                            ${restrictedBadge}${timeLimitBadge}${seasonBadge}
                         </div>
                         <p class="text-sm text-slate-500 mb-4 line-clamp-2">${q.desc || 'No description.'}</p>
                         <span class="text-xs font-bold bg-slate-100 px-3 py-1.5 rounded-lg text-slate-600">${(q.questions || []).length} Questions</span>
@@ -1796,6 +1808,19 @@
             document.getElementById('edit-quiz-end').value = toDatetimeLocal(activeQuizEditor.availableTo);
             document.getElementById('edit-quiz-timelimit').value = activeQuizEditor.timeLimit || 0;
             document.getElementById('edit-quiz-passing').value = activeQuizEditor.passingScore || 60;
+
+            // Populate the season dropdown, then select whichever season this test is already linked to
+            const seasonSel = document.getElementById('edit-quiz-season');
+            if (seasonSel) {
+                const now = Date.now();
+                const seasons = (globalData.seasons || []).slice().sort((a, b) => b.start - a.start);
+                seasonSel.innerHTML = `<option value="">— No Season (General Test) —</option>` +
+                    seasons.map(s => {
+                        const isActive = now >= s.start && now <= s.end;
+                        return `<option value="${s.id}">${isActive ? '🟢 ' : ''}${s.name}${isActive ? ' (Active)' : ''}</option>`;
+                    }).join('');
+                seasonSel.value = activeQuizEditor.seasonId || '';
+            }
 
             // ✅ Populate restricted student chips from stored IDs
             selectedRestrictedIds = new Set(activeQuizEditor.restrictedTo || []);
@@ -1953,6 +1978,7 @@
             activeQuizEditor.alwaysAvailable = document.getElementById('edit-quiz-always').checked;
             activeQuizEditor.timeLimit = parseInt(document.getElementById('edit-quiz-timelimit').value) || 0;
             activeQuizEditor.passingScore = parseInt(document.getElementById('edit-quiz-passing').value) || 60;
+            activeQuizEditor.seasonId = document.getElementById('edit-quiz-season')?.value || '';
 
             const sTime = document.getElementById('edit-quiz-start').value;
             const eTime = document.getElementById('edit-quiz-end').value;
